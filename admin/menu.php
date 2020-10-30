@@ -26,7 +26,7 @@ class gitapi {
     /* Register carbon fields */
     public function crbThemeOptions() {
 
-        Container::make( 'theme_options', 'GIT Issues Options')
+        Container::make( 'theme_options', 'Page Setting')
             ->set_page_file( 'theme-options' )
             ->set_page_menu_title( 'Pull GIT Issues' )
             ->add_fields( array(
