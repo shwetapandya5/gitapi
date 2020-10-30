@@ -143,6 +143,14 @@ class gitapi {
         
         if($url){
 
+            global $wpdb;
+            $meta_value = array();
+            $metas = $wpdb->get_results("SELECT meta_value FROM $wpdb->postmeta where meta_key like '%git_issue_num%'");
+
+            if(!empty($metas)){
+                $meta_value = array_column($metas, 'meta_value');
+            }
+
             $response = $this->curlData($url,$page_num);
 
             if(!empty($response)){
@@ -152,22 +160,28 @@ class gitapi {
 
                 if(!empty($data)){
                     foreach ($data as $key=>$value) {
-                       $post_id = wp_insert_post(array (
-                            'post_type' => 'get_git_issue',
-                            'post_title' => $value,
-                            'post_content' => '',
-                            'post_status' => 'publish',
-                            'comment_status' => 'closed',
-                            'ping_status' => 'closed',
-                        ));
 
-                       if($post_id){
-                            carbon_set_post_meta($post_id, 'git_issue_num', $key);
-                       }
+                       if(!in_array($key, $meta_value)){
+
+                           $post_id = wp_insert_post(array (
+                                'post_type' => 'get_git_issue',
+                                'post_title' => $value,
+                                'post_content' => '',
+                                'post_status' => 'publish',
+                                'comment_status' => 'closed',
+                                'ping_status' => 'closed',
+                            ));
+
+                           if($post_id){
+                                carbon_set_post_meta($post_id, 'git_issue_num', $key);
+                           }
+                        }
                     }
                 } 
                 $page_num = $page_num + 1;
-                $page_num = update_option('_page_num',$page_num);   
+                $page_num = update_option('_page_num',$page_num);
+                wp_redirect("edit.php?post_type=get_git_issue");
+                exit;   
             }
           
         }
