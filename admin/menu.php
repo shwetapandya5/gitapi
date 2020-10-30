@@ -19,16 +19,19 @@ class gitapi {
         register_activation_hook(EXA_PLUGIN, array($this, 'flushRewrites'));
         register_deactivation_hook(EXA_PLUGIN, array($this, 'flushPostType'));
         add_action('carbon_fields_theme_options_container_saved', array($this, 'getGitIssues'));
+        add_action('admin_init', array($this, 'my_plugin_redirect'));
 
     }
 
     /* Register carbon fields */
     public function crbThemeOptions() {
 
-        Container::make( 'theme_options', 'GIT Repo URL' )
+        Container::make( 'theme_options', 'GIT Issues Options')
+            ->set_page_file( 'theme-options' )
+            ->set_page_menu_title( 'Pull GIT Issues' )
             ->add_fields( array(
-            Field::make( 'text', 'git_url' ),
             Field::make( 'text', 'page_num', 'Page Num' )
+            ->set_attribute( 'placeholder', 'Enter a page number from which you want to pull GIT Issues.'),
         ) );
 
         Container::make( 'post_meta', __( 'Post Options', 'crb' ) )
@@ -72,8 +75,16 @@ class gitapi {
         );
     }
 
+    public function my_plugin_redirect() {
+        if (get_option('my_plugin_do_activation_redirect', false)) {
+            delete_option('my_plugin_do_activation_redirect');
+            exit( wp_redirect( admin_url( 'admin.php?page=theme-options' ) ) );
+        }
+    }
+
     /*Call function of custom post type and Remove rewrite rules and then recreate rewrite rules.*/
     public function flushRewrites() {
+            add_option('my_plugin_do_activation_redirect', true);
             flush_rewrite_rules();
     }
 
@@ -130,18 +141,20 @@ class gitapi {
     /*Call function on form submit */
     public function getGitIssues(){
 
-        $url = $_POST['carbon_fields_compact_input']['_git_url'];
+        //$url = $_POST['carbon_fields_compact_input']['_git_url'];
         $page_num = $_POST['carbon_fields_compact_input']['_page_num'];
 
         if($page_num == ""){
              $page_num = 1;
         }
 
-        if($url == ""){
+       /* if($url == ""){
             $url = "https://api.github.com/repos/htmlburger/carbon-fields/issues";
-        }
+        }*/
+
+        $url = "https://api.github.com/repos/htmlburger/carbon-fields/issues";
         
-        if($url){
+        //if($url){
 
             global $wpdb;
             $meta_value = array();
@@ -184,7 +197,7 @@ class gitapi {
                 exit;   
             }
           
-        }
+        //}
     }   
 }
 
